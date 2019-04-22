@@ -1,0 +1,234 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+####################################################
+##### Pre-migration ################################
+####################################################
+
+##### Fetch Licenses ##############################
+
+request license fetch
+
+##### Content Upgrade ##############################
+
+request anti-virus upgrade check
+request wildfire upgrade check
+request content upgrade check
+request content upgrade download latest
+request content upgrade install version latest
+
+##### Software Upgrade #############################
+
+request system software check
+request system software download version {{ panos_software.major_version }}
+request system software download version {{ panos_software.minor_version }}
+request system software install version {{ panos_software.minor_version }}
+request restart system
+
+##### Content Upgrade ##############################
+
+request content upgrade check
+request content upgrade download latest
+request content upgrade install version latest
+
+##### Standard Configuration #######################
+
+set network lldp enable yes
+set network profiles lldp-profile "Inside LLDP" option-tlvs management-address iplist Mgmt ipv4 {{ mgmt_interface.ip }}
+set network profiles lldp-profile "Inside LLDP" option-tlvs management-address iplist Mgmt interface management
+set network profiles lldp-profile "Inside LLDP" option-tlvs management-address enabled yes
+set network profiles lldp-profile "Inside LLDP" option-tlvs port-description yes
+set network profiles lldp-profile "Inside LLDP" option-tlvs system-name yes
+set network profiles lldp-profile "Inside LLDP" option-tlvs system-description yes
+set network profiles lldp-profile "Inside LLDP" option-tlvs system-capabilities yes
+
+set network qos profile default class class1 priority real-time
+set network qos profile default class class2 priority high
+set network qos profile default class class3 priority high
+set network qos profile default class class4 priority medium
+set network qos profile default class class5 priority medium
+set network qos profile default class class6 priority low
+set network qos profile default class class7 priority low
+set network qos profile default class class8 priority low
+
+set network profiles interface-management-profile "Any Ping" ping yes
+set network profiles interface-management-profile "WSI Management Profile" https yes
+set network profiles interface-management-profile "WSI Management Profile" ssh yes
+set network profiles interface-management-profile "WSI Management Profile" ping yes
+
+{% for zone in zones %}
+set zone {{ zone.name }} network layer3 [ ]
+{% if zone.enable_user_id %}
+set zone {{ zone.name }} enable-user-identification yes
+{% endif %}
+{% endfor %}
+
+{% if loopback_interface is defined %}
+set network interface loopback units {{ loopback_interface.name }} comment "Loopback for routing"
+set network interface loopback units {{ loopback_interface.name }} ip {{ loopback_interface.ip }}
+set network interface loopback units {{ loopback_interface.name }} interface-management-profile "{{ loopback_interface.mgmt_profile }}"
+set zone {{ loopback_interface.zone }} network layer3 {{ loopback_interface.name }}
+set network virtual-router default interface {{ loopback_interface.name }}
+{% endif %}
+
+set network interface ethernet {{ wan_interface.name }} link-state auto
+set network interface ethernet {{ wan_interface.name }} layer3 ipv6 neighbor-discovery router-advertisement enable no
+set network interface ethernet {{ wan_interface.name }} layer3 ndp-proxy enabled no
+set network interface ethernet {{ wan_interface.name }} layer3 lldp enable yes
+set network interface ethernet {{ wan_interface.name }} layer3 lldp profile "{{ wan_interface.lldp_profile}}"
+set network interface ethernet {{ wan_interface.name }} layer3 ip {{ wan_interface.ip }}
+set network interface ethernet {{ wan_interface.name }} layer3 interface-management-profile "{{ wan_interface.mgmt_profile }}"
+set zone {{ wan_interface.zone }} network layer3 {{ wan_interface.name }}
+set network qos interface {{ wan_interface.name }} regular-traffic groups regular-traffic-group
+set network qos interface {{ wan_interface.name }} regular-traffic default-group qos-profile default
+set network qos interface {{ wan_interface.name }} tunnel-traffic groups tunnel-traffic-group
+set network qos interface {{ wan_interface.name }} tunnel-traffic default-group per-tunnel-qos-profile default
+set network virtual-router default interface {{ wan_interface.name }}
+
+{% if eth_interface is defined %}
+set network interface ethernet {{ eth_interface.name }} link-state auto
+set network interface ethernet {{ eth_interface.name }} layer3 ipv6 neighbor-discovery router-advertisement enable no
+set network interface ethernet {{ eth_interface.name }} layer3 ndp-proxy enabled no
+set network interface ethernet {{ eth_interface.name }} layer3 lldp enable yes
+set network interface ethernet {{ eth_interface.name }} layer3 lldp profile "{{ eth_interface.lldp_profile}}"
+set network qos interface {{ eth_interface.name }} regular-traffic groups regular-traffic-group
+set network qos interface {{ eth_interface.name }} regular-traffic default-group qos-profile default
+set network qos interface {{ eth_interface.name }} tunnel-traffic groups tunnel-traffic-group
+set network qos interface {{ eth_interface.name }} tunnel-traffic default-group per-tunnel-qos-profile default
+{% for sub_int in eth_interface.subinterfaces %}
+set network interface ethernet {{ eth_interface.name }} layer3 units {{ eth_interface.name }}.{{ sub_int.tag }} tag {{ sub_int.tag }}
+set network interface ethernet {{ eth_interface.name }} layer3 units {{ eth_interface.name }}.{{ sub_int.tag }} ipv6 neighbor-discovery router-advertisement enable no
+set network interface ethernet {{ eth_interface.name }} layer3 units {{ eth_interface.name }}.{{ sub_int.tag }} ndp-proxy enabled no
+set network interface ethernet {{ eth_interface.name }} layer3 units {{ eth_interface.name }}.{{ sub_int.tag }} adjust-tcp-mss enable no
+set network interface ethernet {{ eth_interface.name }} layer3 units {{ eth_interface.name }}.{{ sub_int.tag }} ip {{ sub_int.ip }}
+set network interface ethernet {{ eth_interface.name }} layer3 units {{ eth_interface.name }}.{{ sub_int.tag }} comment "{{ sub_int.comment }}"
+set network interface ethernet {{ eth_interface.name }} layer3 units {{ eth_interface.name }}.{{ sub_int.tag }} interface-management-profile "{{ sub_int.mgmt_profile }}"
+set zone {{ sub_int.zone }} network layer3 {{ eth_interface.name }}.{{ sub_int.tag }}
+set network virtual-router default interface {{ eth_interface.name }}.{{ sub_int.tag }}
+{% endfor %}
+{% endif %}
+
+{% if ae_interface is defined %}
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 ipv6 neighbor-discovery router-advertisement enable no
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 lacp high-availability use-same-system-mac enable no
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 lacp transmission-rate slow
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 lacp enable no
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 ndp-proxy enabled no
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 lldp enable yes
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 lldp profile "{{ ae_interface.lldp_profile}}"
+set network qos interface {{ ae_interface.name }} regular-traffic groups regular-traffic-group
+set network qos interface {{ ae_interface.name }} regular-traffic default-group qos-profile default
+set network qos interface {{ ae_interface.name }} tunnel-traffic groups tunnel-traffic-group
+set network qos interface {{ ae_interface.name }} tunnel-traffic default-group per-tunnel-qos-profile default
+{% for sub_int in ae_interface.subinterfaces %}
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 units {{ ae_interface.name }}.{{ sub_int.tag }} tag {{ sub_int.tag }}
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 units {{ ae_interface.name }}.{{ sub_int.tag }} ipv6 neighbor-discovery router-advertisement enable no
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 units {{ ae_interface.name }}.{{ sub_int.tag }} ndp-proxy enabled no
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 units {{ ae_interface.name }}.{{ sub_int.tag }} adjust-tcp-mss enable no
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 units {{ ae_interface.name }}.{{ sub_int.tag }} ip {{ sub_int.ip }}
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 units {{ ae_interface.name }}.{{ sub_int.tag }} comment "{{ sub_int.comment }}"
+set network interface aggregate-ethernet {{ ae_interface.name }} layer3 units {{ ae_interface.name }}.{{ sub_int.tag }} interface-management-profile "{{ sub_int.mgmt_profile }}"
+set zone {{ sub_int.zone }} network layer3 {{ ae_interface.name }}.{{ sub_int.tag }}
+set network virtual-router default interface {{ ae_interface.name }}.{{ sub_int.tag }}
+{% endfor %}
+{% for int in ae_interface.interfaces %}
+set network interface ethernet {{ int }} link-state auto
+set network interface ethernet {{ int }} aggregate-group {{ ae_interface.name }}
+{% endfor %}
+{% endif %}
+
+{% if high_availability is defined %}
+set deviceconfig high-availability group group-id 1
+set deviceconfig high-availability group peer-ip {{ high_availability.peer_ip }}
+set deviceconfig high-availability group election-option device-priority {{ high_availability.device_priority }}
+set deviceconfig high-availability group election-option heartbeat-backup yes
+set deviceconfig high-availability group election-option preemptive yes
+set deviceconfig high-availability group election-option timers recommended
+set deviceconfig high-availability group description "{{ high_availability.description }}"
+set deviceconfig high-availability group monitoring link-monitoring enabled yes
+set deviceconfig high-availability group monitoring link-monitoring link-group wan interface {{ wan_interface.name }}
+{% if ae_interface is defined %}
+{% for int in ae_interface.interfaces %}
+set deviceconfig high-availability group monitoring link-monitoring link-group inside interface {{ int }}
+{% endfor %}
+{% else %}
+set deviceconfig high-availability group monitoring link-monitoring link-group inside interface {{ eth_interface.name }}
+{% endif %}
+set deviceconfig high-availability group monitoring path-monitoring path-group virtual-router default destination-ip {{ high_availability.path_monitoring_ip }}
+set deviceconfig high-availability group monitoring path-monitoring path-group virtual-router default ping-interval 300
+set deviceconfig high-availability group mode active-passive passive-link-state auto
+set deviceconfig high-availability interface ha1 ip-address {{ high_availability.ha1_ip }}
+set deviceconfig high-availability interface ha1 netmask {{ high_availability.ha1_netmask }}
+set deviceconfig high-availability interface ha1-backup
+set deviceconfig high-availability interface ha2 ip-address {{ high_availability.ha2_ip }}
+set deviceconfig high-availability interface ha2 netmask {{ high_availability.ha1_netmask }}
+set deviceconfig high-availability interface ha2-backup
+set deviceconfig high-availability interface ha3
+set deviceconfig high-availability enabled yes
+
+##### Apply to the Primary HA Peer Only #######################
+{% endif %}
+
+{% if static_routes is defined %}
+{% for route in static_routes %}
+set network virtual-router default routing-table ip static-route "{{ route.name }}" nexthop ip-address {{ route.nexthop }}
+set network virtual-router default routing-table ip static-route "{{ route.name }}" path-monitor enable no
+set network virtual-router default routing-table ip static-route "{{ route.name }}" path-monitor failure-condition any
+set network virtual-router default routing-table ip static-route "{{ route.name }}" path-monitor hold-time 2
+set network virtual-router default routing-table ip static-route "{{ route.name }}" metric 10
+set network virtual-router default routing-table ip static-route "{{ route.name }}" destination {{ route.network }}
+set network virtual-router default routing-table ip static-route "{{ route.name }}" route-table unicast
+{% endfor %}
+{% endif %}
+
+{% if ospf is defined %}
+set network virtual-router default protocol ospf router-id {{ ospf.router_id }}
+set network virtual-router default protocol ospf enable yes
+set network virtual-router default protocol ospf reject-default-route no
+{% for area in ospf.areas %}
+set network virtual-router default protocol ospf area {{ area.name }} type normal
+{% for int in area.interfaces %}
+set network virtual-router default protocol ospf area {{ area.name }} interface {{ int }} enable yes
+set network virtual-router default protocol ospf area {{ area.name }} interface {{ int }} passive no
+set network virtual-router default protocol ospf area {{ area.name }} interface {{ int }} gr-delay 10
+set network virtual-router default protocol ospf area {{ area.name }} interface {{ int }} metric 10
+set network virtual-router default protocol ospf area {{ area.name }} interface {{ int }} priority 1
+set network virtual-router default protocol ospf area {{ area.name }} interface {{ int }} hello-interval 10
+set network virtual-router default protocol ospf area {{ area.name }} interface {{ int }} dead-counts 4
+set network virtual-router default protocol ospf area {{ area.name }} interface {{ int }} retransmit-interval 5
+set network virtual-router default protocol ospf area {{ area.name }} interface {{ int }} transit-delay 1
+set network virtual-router default protocol ospf area {{ area.name }} interface {{ int }} link-type broadcast
+{% endfor %}
+{% endfor %}
+{% if ospf.redistribute_connected %}
+set network virtual-router default protocol redist-profile connected filter type connect
+set network virtual-router default protocol redist-profile connected priority 1
+set network virtual-router default protocol redist-profile connected action redist
+set network virtual-router default protocol ospf export-rules connected new-path-type ext-2
+{% if loopback_interface is defined %}
+set network virtual-router default protocol ospf export-rules {{ loopback_interface.ip }} new-path-type ext-2 metric 1
+{% endif %}
+{% endif %}
+{% endif %}
+
+
+####################################################
+##### Prior to Shipping ############################
+####################################################
+
+set deviceconfig system type static
+set deviceconfig system ip-address {{ mgmt_interface.ip }}
+set deviceconfig system netmask {{ mgmt_interface.netmask }}
+set deviceconfig system service disable-telnet yes
+set deviceconfig system service disable-http yes
+set deviceconfig system default-gateway {{ mgmt_interface.gateway }}
+request shutdown system
+
+
+####################################################
+##### Post-migration ###############################
+####################################################
+
+{% for user in admin_users %}
+set mgt-config users {{ user.name }} phash {{ user.phash }}
+set mgt-config users admin permissions role-based superuser yes
+{% endfor %}
+
