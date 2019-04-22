@@ -1,0 +1,18 @@
+---
+- hosts: all
+  connection: local
+  gather_facts: False
+
+  tasks:
+  - name: Show Global Counters
+    panos_op:
+      ip_address: '{{ inventory_hostname }}'
+      api_key: '{{ vault_api_key }}'
+      cmd: show counter global
+    delegate_to: localhost
+    register: counters
+
+  - name: Output Global Counters
+    debug:
+      var: counters.stdout_lines[0]
+...
