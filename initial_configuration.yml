@@ -6,6 +6,6 @@
   - name: Generate Intial Configuration Files
     template:
       src: templates/initial_config.j2
-      dest: "../../generated_configurations/intital_configurations/initial_configuration-{{ inventory_hostname }}.txt"
+      dest: templates/output/initial_configuration-{{ inventory_hostname }}.txt
     delegate_to: localhost
 ...
