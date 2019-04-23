@@ -1,0 +1,18 @@
+---
+- hosts: all
+  connection: local
+  gather_facts: False
+
+  tasks:
+  - name: Show System Resource
+    panos_op:
+      ip_address: '{{ inventory_hostname }}'
+      api_key: '{{ vault_api_key }}'
+      cmd: show running resource-monitor
+    delegate_to: localhost
+    register: sys_resources
+
+  - name: Output System Resource Monitor
+    debug:
+      var: sys_resources.stdout_lines[0]
+...
