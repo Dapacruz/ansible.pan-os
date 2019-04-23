@@ -18,9 +18,16 @@
       content: "text"
       xpath: "//entry[name='flow_tcp_non_syn']/rate"
     delegate_to: localhost
-    register: parsed
+    ignore_errors: True
+    register: drop_rate
 
-  - name: Output Asymemetric Drop Rate
+  - name: Output
     debug:
-      msg: "Asymmetric Drop Rate: {{ parsed.matches[0].rate }}"
+      msg: "Asymmetric Drop Rate: {{ drop_rate.matches[0].rate }}"
+    when: drop_rate.matches is defined
+
+  - name: Output
+    debug:
+      msg: "Asymmetric Drop Rate: N/A"
+    when: drop_rate.matches is undefined
 ...
