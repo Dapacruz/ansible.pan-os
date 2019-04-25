@@ -7,7 +7,7 @@
   - name: Show Global Counters
     panos_op:
       ip_address: '{{ inventory_hostname }}'
-      api_key: '{{ vault_api_key }}'
+      api_key: '{{ panw_api_token }}'
       cmd: show counter global
     delegate_to: localhost
     register: counters

@@ -7,7 +7,7 @@
   - name: Show System Resource
     panos_op:
       ip_address: '{{ inventory_hostname }}'
-      api_key: '{{ vault_api_key }}'
+      api_key: '{{ panw_api_token }}'
       cmd: show running resource-monitor
     delegate_to: localhost
     register: sys_resources
