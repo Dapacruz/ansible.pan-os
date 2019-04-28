@@ -8,8 +8,4 @@
       src: templates/initial_config.j2
       dest: templates/output/initial_configuration-{{ inventory_hostname }}.txt
     delegate_to: localhost
-  
-  - name: Copy Generated Configuraiton to RKNetAdmin
-    command: smbclient //rknetadmin1.***REMOVED***/NetInfo "{{ password }}" -U "{{ username }}" -c "prompt; recurse; cd ansible/configurations/pan-os; lcd /var/lib/awx/projects/_11__palo_alto_networks/templates/output; mput *.txt"
-    delegate_to: localhost
 ...
