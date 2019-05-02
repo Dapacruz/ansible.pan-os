@@ -163,9 +163,9 @@ set deviceconfig high-availability interface ha2 netmask {{ high_availability.ha
 set deviceconfig high-availability interface ha2-backup
 set deviceconfig high-availability interface ha3
 set deviceconfig high-availability enabled yes
+{% endif %}
 
 ##### Apply to the Primary HA Peer Only #######################
-{% endif %}
 
 {% if static_routes is defined %}
 {% for route in static_routes %}
@@ -207,6 +207,16 @@ set network virtual-router default protocol ospf export-rules connected new-path
 set network virtual-router default protocol ospf export-rules {{ loopback_interface.ip }} new-path-type ext-2 metric 1
 {% endif %}
 {% endif %}
+{% endif %}
+
+{% if dhcp_relay is defined %}
+{% for int in dhcp_relay.interfaces %}
+{% for server in dhcp_relay.servers %}
+set network dhcp interface {{ int }} relay ip server {{ server }}
+{% endfor %}
+set network dhcp interface {{ int }} relay ip enabled yes
+set network dhcp interface {{ int }} relay ipv6 enabled no
+{% endfor %}
 {% endif %}
 
 
