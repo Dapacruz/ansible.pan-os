@@ -239,6 +239,5 @@ request shutdown system
 
 {% for user in admin_users %}
 set mgt-config users {{ user.name }} phash {{ user.phash }}
-set mgt-config users admin permissions role-based superuser yes
+set mgt-config users {{ user.name }} permissions role-based superuser yes
 {% endfor %}
-
