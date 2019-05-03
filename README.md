@@ -1,2 +1,2 @@
 # ansible.pan-os
-Ansible PAN-OS
+Ansible playbooks for PAN-OS
