@@ -1,6 +1,6 @@
 ---
 - hosts: all
-  gather_facts: false
+  gather_facts: False
 
   tasks:
   - name: Generate Intial Configuration Files
