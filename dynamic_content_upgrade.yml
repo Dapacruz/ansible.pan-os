@@ -12,6 +12,7 @@
         provider: "{{ provider }}"
         cmd: show jobs all
       register: results
+      changed_when: False
 
     - name: Parse Job Statuses
       xml:
@@ -42,6 +43,7 @@
         provider: "{{ provider }}"
         cmd: show system info
       register: results
+      changed_when: False
 
     - name: Parse Current Content Version
       xml:
@@ -58,6 +60,7 @@
         provider: "{{ provider }}"
         cmd: request content upgrade check
       register: results
+      changed_when: False
 
     - name: Parse Available Content Versions
       xml:
