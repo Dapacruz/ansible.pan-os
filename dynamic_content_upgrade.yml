@@ -5,6 +5,7 @@
 
   roles:
     - role: PaloAltoNetworks.paloaltonetworks
+      run_once: true
 
   tasks:
     - name: Gather Jobs
@@ -72,26 +73,26 @@
     - set_fact:
         latest_version: "{{ content_versions.matches | map(attribute='version') | list | max }}"
 
-    - name: Upgrade Content to the Latest Version
-      block:
-        - name: Download New Content
-          panos_op:
-            ip_address: "{{ inventory_hostname }}"
-            api_key: "{{ panw_api_token }}"
-            cmd: request content upgrade download latest
+    # - name: Upgrade Content to the Latest Version
+    #   block:
+    #     - name: Download New Content
+    #       panos_op:
+    #         ip_address: "{{ inventory_hostname }}"
+    #         api_key: "{{ panw_api_token }}"
+    #         cmd: request content upgrade download latest
 
-        - name: Wait for Latest Content Version to Finish Downloading
-          panos_check:
-            ip_address: "{{ inventory_hostname }}"
-            api_key: "{{ panw_api_token }}"
-            timeout: 600
+    #     - name: Wait for Latest Content Version to Finish Downloading
+    #       panos_check:
+    #         ip_address: "{{ inventory_hostname }}"
+    #         api_key: "{{ panw_api_token }}"
+    #         timeout: 600
 
-        - name: Install New Content Version
-          panos_op:
-            ip_address: "{{ inventory_hostname }}"
-            api_key: "{{ panw_api_token }}"
-            cmd: request content upgrade install version latest
-      when: current_version != latest_version and not content_job_running
+    #     - name: Install New Content Version
+    #       panos_op:
+    #         ip_address: "{{ inventory_hostname }}"
+    #         api_key: "{{ panw_api_token }}"
+    #         cmd: request content upgrade install version latest
+    #   when: current_version != latest_version and not content_job_running
 
     - name: Content Job Pending
       debug:
