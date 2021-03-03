@@ -92,12 +92,12 @@
             ip_address: "{{ inventory_hostname }}"
             api_key: "{{ panw_api_token }}"
             cmd: request content upgrade install version latest
-      when: current_version != latest_version
+      when: (current_version != latest_version) and not content_job_running
 
     - name: Content Job Pending
       debug:
         msg: Another content job is already running! Try again later.
-      when: current_version != latest_version and content_job_running
+      when: (current_version != latest_version) and content_job_running
 
     - name: Upgrade Skipped
       debug:
