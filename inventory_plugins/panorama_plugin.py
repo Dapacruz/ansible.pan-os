@@ -119,6 +119,7 @@ class InventoryModule(BaseInventoryPlugin):
         self.inventory.add_group("passive")
         self.inventory.add_group("nam")
         self.inventory.add_group("intl")
+        self.inventory.add_group("test")
         self.inventory.add_group("rkat1_datacenter")
         self.inventory.add_group("sast1_datacenter")
         self.inventory.add_group("asbc1_datacenter")
@@ -142,6 +143,9 @@ class InventoryModule(BaseInventoryPlugin):
                 self.inventory.add_host(host=fw["hostname"], group="nam")
             elif "intl" in fw_tags:
                 self.inventory.add_host(host=fw["hostname"], group="intl")
+
+            if "test" in fw_tags:
+                self.inventory.add_host(host=fw["hostname"], group="test")
 
             if fw["hostname"].startswith("RKAT1"):
                 self.inventory.add_host(host=fw["hostname"], group="rkat1_datacenter")
