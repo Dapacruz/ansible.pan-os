@@ -119,6 +119,9 @@ class InventoryModule(BaseInventoryPlugin):
         self.inventory.add_group("passive")
         self.inventory.add_group("nam")
         self.inventory.add_group("intl")
+        self.inventory.add_group("rkat1_datacenter")
+        self.inventory.add_group("sast1_datacenter")
+        self.inventory.add_group("asbc1_datacenter")
 
         tags = self._get_structured_tags()
         firewalls = self._get_structured_inventory()
@@ -139,6 +142,13 @@ class InventoryModule(BaseInventoryPlugin):
                 self.inventory.add_host(host=fw["hostname"], group="nam")
             elif "intl" in fw_tags:
                 self.inventory.add_host(host=fw["hostname"], group="intl")
+
+            if fw["hostname"].startswith("RKAT1"):
+                self.inventory.add_host(host=fw["hostname"], group="rkat1_datacenter")
+            elif fw["hostname"].startswith("SAST1"):
+                self.inventory.add_host(host=fw["hostname"], group="sast1_datacenter")
+            elif fw["hostname"].startswith("ASBC1"):
+                self.inventory.add_host(host=fw["hostname"], group="asbc1_datacenter")
 
             self.inventory.set_variable(
                 fw["hostname"], "ansible_host", f'{fw["hostname"].lower()}.***REMOVED***'
