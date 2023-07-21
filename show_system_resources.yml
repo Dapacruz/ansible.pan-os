@@ -11,3 +11,7 @@
         cmd: show running resource-monitor
       delegate_to: localhost
       register: sys_resources
+
+    - name: Output System Resource Monitor
+      debug:
+        var: sys_resources.stdout_lines[0]
