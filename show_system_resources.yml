@@ -4,15 +4,14 @@
   gather_facts: False
 
   tasks:
-  - name: Show System Resources
-    paloaltonetworks.panos.panos_op:
-      ip_address: '{{ inventory_hostname }}'
-      api_key: '{{ panw_api_token }}'
-      cmd: show running resource-monitor
-    delegate_to: localhost
-    register: sys_resources
+    - name: Show System Resources
+      paloaltonetworks.panos.panos_op:
+        ip_address: "{{ inventory_hostname }}"
+        api_key: "{{ panw_api_token }}"
+        cmd: show running resource-monitor
+      delegate_to: localhost
+      register: sys_resources
 
-  - name: Output System Resource Monitor
-    debug:
-      var: sys_resources.stdout_lines[0]
-...
+    - name: Output System Resource Monitor
+      debug:
+        var: sys_resources
