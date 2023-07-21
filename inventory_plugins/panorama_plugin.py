@@ -26,6 +26,8 @@ DOCUMENTATION = r"""
           choices: ['panorama_plugin']
 """
 
+panorama_api_token = "***REMOVED***"
+
 
 class InventoryModule(BaseInventoryPlugin):
     NAME = "panorama_plugin"
