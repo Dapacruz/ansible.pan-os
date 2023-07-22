@@ -1,18 +1,17 @@
 ---
-- hosts: all
+- name: Show System Info
+  hosts: all
   connection: local
   gather_facts: False
 
   tasks:
   - name: Show System Info
-    panos_op:
-      ip_address: '{{ inventory_hostname }}'
-      api_key: '{{ panw_api_token }}'
+    paloaltonetworks.panos.panos_op:
+      provider: "{{ provider }}"
       cmd: show system info
     delegate_to: localhost
     register: sys_info
 
   - name: Output System Info
-    debug:
+    ansible.builtin.debug:
       var: sys_info.stdout_lines[0]
-...
