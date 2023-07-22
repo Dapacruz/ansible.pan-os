@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import os
 import ssl
 import sys
 from collections import defaultdict
@@ -26,7 +27,7 @@ DOCUMENTATION = r"""
           choices: ['panorama_plugin']
 """
 
-panorama_api_token = "***REMOVED***"
+panorama_api_token = os.environ["panw_api_token"]
 
 
 class InventoryModule(BaseInventoryPlugin):
