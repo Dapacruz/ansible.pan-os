@@ -1,22 +1,19 @@
 ---
-- hosts: all
+- name: Configure Local Admins
+  hosts: all
   connection: local
   gather_facts: False
 
-  roles:
-    - role: PaloAltoNetworks.paloaltonetworks
-      run_once: true
-
   tasks:
     - name: Get PAN-OS Facts
-      panos_facts:
+      paloaltonetworks.panos.panos_facts:
         provider: "{{ provider }}"
         gather_subset: ["ha"]
 
     - name: Configure local admin
       block:
         - name: Generate password hash
-          panos_op:
+          paloaltonetworks.panos.panos_op:
             provider: "{{ provider }}"
             cmd: <request><password-hash><password>{{ item.split(',')[1] }}</password></password-hash></request>
             cmd_is_xml: true
@@ -30,7 +27,7 @@
           loop: "{{ results.results }}"
 
         - name: Create/update local admin
-          panos_type_cmd:
+          paloaltonetworks.panos.panos_type_cmd:
             provider: "{{ provider }}"
             xpath: "/config/mgt-config/users"
             element: "<entry name='{{ item.key }}'><phash>{{ item.value }}</phash><permissions><role-based><superuser>yes</superuser></role-based></permissions></entry>"
@@ -40,11 +37,10 @@
 
   handlers:
     - name: Commit Changes Partial
-      panos_commit:
+      paloaltonetworks.panos.panos_commit:
         provider: "{{ provider }}"
         admins: ["{{ provider.username }}"]
 
     - name: Commit Changes Full
-      panos_commit:
+      paloaltonetworks.panos.panos_commit:
         provider: "{{ provider }}"
-...
