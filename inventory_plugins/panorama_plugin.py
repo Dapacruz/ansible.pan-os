@@ -27,8 +27,6 @@ DOCUMENTATION = r"""
           choices: ['panorama_plugin']
 """
 
-panorama_api_token = os.environ["panw_api_token"]
-
 
 class InventoryModule(BaseInventoryPlugin):
     NAME = "panorama_plugin"
@@ -53,7 +51,7 @@ class InventoryModule(BaseInventoryPlugin):
             {
                 "type": "op",
                 "cmd": cmd,
-                "key": panorama_api_token,
+                "key": self.panorama_api_token,
             }
         )
         url = f"https://{self.panorama}/api/?{params}"
@@ -83,7 +81,7 @@ class InventoryModule(BaseInventoryPlugin):
                 "type": "config",
                 "action": "get",
                 "xpath": "/config/mgt-config",
-                "key": panorama_api_token,
+                "key": self.panorama_api_token,
             }
         )
         url = f"https://{self.panorama}/api/?{params}"
@@ -176,7 +174,8 @@ class InventoryModule(BaseInventoryPlugin):
             # Store the options from the YAML file
             self.plugin = self.get_option("plugin")
             # self.panorama = self.get_option("self.panorama")
-            self.panorama = "***REMOVED***"
+            self.panorama = os.environ["panorama"]
+            self.panorama_api_token = os.environ["panw_api_token"]
         except Exception as e:
             raise AnsibleParserError(f"All correct options required: {e}")
 
