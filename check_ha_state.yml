@@ -1,6 +1,6 @@
 ---
 - name: Check HA State
-  hosts: all
+  hosts: "{{ selected_hosts }}"
   connection: local
   gather_facts: False
 
