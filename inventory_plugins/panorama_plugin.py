@@ -174,7 +174,6 @@ class InventoryModule(BaseInventoryPlugin):
         try:
             # Store the options from the YAML file
             self.plugin = self.get_option("plugin")
-            # self.panorama = self.get_option("self.panorama")
             self.panorama = os.environ["panorama"]
             self.panorama_api_token = os.environ["panw_api_token"]
         except Exception as e:
