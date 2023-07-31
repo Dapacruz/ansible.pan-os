@@ -1,6 +1,6 @@
 ---
 - name: Run Exec Command
-  hosts: test
+  hosts: all
   gather_facts: False
 
   tasks:

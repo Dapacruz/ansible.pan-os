@@ -1,6 +1,6 @@
 ---
 - name: Show System Info
-  hosts: test
+  hosts: all
   connection: local
   gather_facts: False
 
