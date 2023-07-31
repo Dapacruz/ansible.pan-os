@@ -134,6 +134,7 @@ class InventoryModule(BaseInventoryPlugin):
             elif len(fw_tags) == 0:
                 continue
 
+            fw["hostname"] = fw["hostname"].lower()
             ha_state = fw.get("ha", {}).get("state", "standalone")
             if ha_state == "passive":
                 self.inventory.add_host(host=fw["hostname"], group="passive")
