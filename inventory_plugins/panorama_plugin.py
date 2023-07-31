@@ -149,11 +149,11 @@ class InventoryModule(BaseInventoryPlugin):
             if "test" in fw_tags:
                 self.inventory.add_host(host=fw["hostname"], group="test")
 
-            if fw["hostname"].startswith("RKAT1"):
+            if fw["hostname"].startswith("rkat1"):
                 self.inventory.add_host(host=fw["hostname"], group="rkat1_datacenter")
-            elif fw["hostname"].startswith("SAST1"):
+            elif fw["hostname"].startswith("sast1"):
                 self.inventory.add_host(host=fw["hostname"], group="sast1_datacenter")
-            elif fw["hostname"].startswith("ASBC1"):
+            elif fw["hostname"].startswith("asbc1"):
                 self.inventory.add_host(host=fw["hostname"], group="asbc1_datacenter")
 
             self.inventory.set_variable(
