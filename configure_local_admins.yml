@@ -37,10 +37,10 @@
 
   handlers:
     - name: Commit Changes Partial
-      paloaltonetworks.panos.panos_commit:
+      paloaltonetworks.panos.panos_commit_firewall:
         provider: "{{ provider }}"
         admins: ["{{ provider.username }}"]
 
     - name: Commit Changes Full
-      paloaltonetworks.panos.panos_commit:
+      paloaltonetworks.panos.panos_commit_firewall:
         provider: "{{ provider }}"
