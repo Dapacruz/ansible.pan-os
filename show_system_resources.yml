@@ -1,6 +1,6 @@
 ---
 - name: Show System Resources
-  hosts: all
+  hosts: test
   connection: local
   gather_facts: False
 
