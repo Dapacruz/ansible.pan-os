@@ -29,6 +29,7 @@
         - name: Parse password hash results
           set_fact:
             admin_password_hashes: "{{ admin_password_hashes | default({}) | combine({item.item.username: item.stdout_xml.split('>')[3].split('<')[0]}) }}"
+          no_log: True
           loop: "{{ results.results }}"
 
         - name: Create/update local admin
