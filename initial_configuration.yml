@@ -1,6 +1,6 @@
 ---
 - name: Firewall Initial Configuration
-  hosts: test
+  hosts: all
   gather_facts: False
 
   tasks:

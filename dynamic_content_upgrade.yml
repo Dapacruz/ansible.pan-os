@@ -1,6 +1,6 @@
 ---
 - name: Dynamic Content Upgrade
-  hosts: test
+  hosts: all
   connection: local
   gather_facts: False
 
