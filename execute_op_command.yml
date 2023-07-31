@@ -1,15 +1,15 @@
 ---
 - name: Run Exec Command
-  hosts: all
+  hosts: test
   gather_facts: False
 
   tasks:
-  - name: Run exec command
-    paloaltonetworks.panos.panos_op:
-      provider: "{{ provider }}"
-      cmd: '{{ command }}'
-    delegate_to: localhost
-    register: result
+    - name: Run exec command
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: "{{ command }}"
+      delegate_to: localhost
+      register: result
 
-  - ansible.builtin.debug:
-      var: result.stdout_lines[0]
+    - ansible.builtin.debug:
+        var: result.stdout_lines[0]

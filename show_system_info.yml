@@ -1,17 +1,17 @@
 ---
 - name: Show System Info
-  hosts: all
+  hosts: test
   connection: local
   gather_facts: False
 
   tasks:
-  - name: Show System Info
-    paloaltonetworks.panos.panos_op:
-      provider: "{{ provider }}"
-      cmd: show system info
-    delegate_to: localhost
-    register: sys_info
+    - name: Show System Info
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show system info
+      delegate_to: localhost
+      register: sys_info
 
-  - name: Output System Info
-    ansible.builtin.debug:
-      var: sys_info.stdout_lines[0]
+    - name: Output System Info
+      ansible.builtin.debug:
+        var: sys_info.stdout_lines[0]

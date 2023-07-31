@@ -1,6 +1,6 @@
 ---
 - name: Configure Local Admins
-  hosts: all
+  hosts: test
   connection: local
   gather_facts: False
 
