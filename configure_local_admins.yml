@@ -19,6 +19,7 @@
             cmd_is_xml: true
           register: results
           changed_when: False
+          no_log: True
           loop:
             - username: admin
               password: "{{ admin }}"
