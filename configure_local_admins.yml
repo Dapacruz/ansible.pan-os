@@ -15,15 +15,19 @@
         - name: Generate password hash
           paloaltonetworks.panos.panos_op:
             provider: "{{ provider }}"
-            cmd: <request><password-hash><password>{{ item.split(',')[1] }}</password></password-hash></request>
+            cmd: <request><password-hash><password>{{ item.password }}</password></password-hash></request>
             cmd_is_xml: true
           register: results
           changed_when: False
-          loop: "{{ admin_passwords.split('\n') }}"
+          loop:
+            - username: admin
+              password: "{{ admin }}"
+            - username: ***REMOVED***
+              password: "{{ ***REMOVED*** }}"
 
         - name: Parse password hash results
           set_fact:
-            admin_password_hashes: "{{ admin_password_hashes | default({}) | combine({item.item.split(',')[0]: item.stdout_xml.split('>')[3].split('<')[0]}) }}"
+            admin_password_hashes: "{{ admin_password_hashes | default({}) | combine({item.item.username: item.stdout_xml.split('>')[3].split('<')[0]}) }}"
           loop: "{{ results.results }}"
 
         - name: Create/update local admin
