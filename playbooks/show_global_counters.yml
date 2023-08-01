@@ -1,0 +1,17 @@
+---
+- name: Show Global Counters
+  hosts: all
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - name: Show Global Counters
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show counter global
+      delegate_to: localhost
+      register: counters
+
+    - name: Output Global Counters
+      ansible.builtin.debug:
+        var: counters.stdout_lines[0]
