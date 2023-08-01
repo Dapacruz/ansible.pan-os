@@ -1,0 +1,99 @@
+---
+- name: Dynamic Content Upgrade
+  hosts: all
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - name: Gather Jobs
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show jobs all
+      register: results
+      changed_when: False
+
+    - name: Parse Job Statuses
+      community.general.xml:
+        xmlstring: "{{ results.stdout_xml }}"
+        xpath: //status
+        content: text
+      register: job_statuses
+
+    - name: Parse Job Types
+      community.general.xml:
+        xmlstring: "{{ results.stdout_xml }}"
+        xpath: //type
+        content: text
+      register: job_types
+
+    # Merge job_statues and job_types dicts
+    - set_fact:
+        jobs: "{{ jobs | default([]) + [ job.0 | combine(job.1) ] }}"
+      loop: "{{ job_types.matches | zip(job_statuses.matches) | list }}"
+      loop_control:
+        loop_var: job
+
+    - set_fact:
+        content_job_running: "{{ jobs | selectattr('type', 'equalto', 'Content') | selectattr('status', 'match', 'ACT|PEND') | list | count > 0 }}"
+
+    - name: Gather Current Content Version
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show system info
+      register: results
+      changed_when: False
+
+    - name: Parse Current Content Version
+      community.general.xml:
+        xmlstring: "{{ results.stdout_xml }}"
+        xpath: //app-version
+        content: text
+      register: current_version
+
+    - set_fact:
+        current_version: "{{ current_version.matches[0]['app-version'] }}"
+
+    - name: Gather New Content Versions
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: request content upgrade check
+      register: results
+      changed_when: False
+
+    - name: Parse Available Content Versions
+      community.general.xml:
+        xmlstring: "{{ results.stdout_xml }}"
+        xpath: //version
+        content: text
+      register: content_versions
+
+    - set_fact:
+        latest_version: "{{ content_versions.matches | map(attribute='version') | list | max }}"
+
+    - name: Upgrade Content to the Latest Version
+      block:
+        - name: Download New Content
+          paloaltonetworks.panos.panos_op:
+            provider: "{{ provider }}"
+            cmd: request content upgrade download latest
+
+        - name: Wait for Latest Content Version to Finish Downloading
+          paloaltonetworks.panos.panos_check:
+            provider: "{{ provider }}"
+            timeout: 600
+
+        - name: Install New Content Version
+          paloaltonetworks.panos.panos_op:
+            provider: "{{ provider }}"
+            cmd: request content upgrade install version latest
+      when: (current_version != latest_version) and not content_job_running
+
+    - name: Content Job Pending
+      ansible.builtin.debug:
+        msg: Another content job is already running! Try again later.
+      when: (current_version != latest_version) and content_job_running
+
+    - name: Upgrade Skipped
+      ansible.builtin.debug:
+        msg: Firewall is currently running version {{ current_version }}, which is the latest!
+      when: current_version == latest_version
