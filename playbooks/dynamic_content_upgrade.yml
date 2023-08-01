@@ -6,5 +6,5 @@
 
   tasks:
     - name: Update Content to Latest Version
-      panos_dynamic_updates:
+      paloaltonetworks.panos.panos_dynamic_updates:
         provider: "{{ provider }}"
