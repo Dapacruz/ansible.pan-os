@@ -1,0 +1,166 @@
+---
+- name: Get Device State Snapshot
+  hosts: all
+  connection: local
+  gather_facts: false
+
+  pre_tasks:
+    - name: Get Current Date/Time
+      ansible.builtin.command:
+        cmd: env TZ="America/Los_Angeles" date +"%Y%m%dT%H%m%S"
+      register: date_output
+
+    - name: Set Date Fact
+      ansible.builtin.set_fact:
+        date: "{{ date_output.stdout }}"
+
+    - name: Set Other Facts
+      ansible.builtin.set_fact:
+        device_state_snapshot: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.txt"
+        device_state_snapshot_routes: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_routes_{{ date }}.csv"
+        device_state_snapshot_interfaces: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_{{ date }}.csv"
+        device_state_cfg: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_cfg_{{ date }}.tgz"
+
+    - name: Ensure Reports Directories Exists
+      ansible.builtin.file:
+        state: directory
+        path: "{{ playbook_dir }}/output"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Find Existing Files
+      ansible.builtin.find:
+        paths: "{{ playbook_dir }}/output"
+        patterns: "*"
+      register: files
+      run_once: true
+
+    - name: Remove Existing Files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ files.files }}"
+      run_once: true
+
+  tasks:
+    - name: Save Configuration Snapshot
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: save config to preflight_{{ date }}.xml
+      delegate_to: localhost
+      when: save_config_snapshot
+
+    - name: Export Device State
+      paloaltonetworks.panos.panos_export:
+        provider: "{{ provider }}"
+        category: device-state
+        filename: "{{ device_state_cfg }}"
+      delegate_to: localhost
+      when: save_config_snapshot
+
+    - name: show system info
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show system info
+      delegate_to: localhost
+      register: system_info
+
+    - name: show high-availability state
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show high-availability state
+      delegate_to: localhost
+      register: ha_state
+
+    - name: show interface all
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show interface all
+      delegate_to: localhost
+      register: interface_info
+
+    - name: show arp all
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: <show><arp><entry name = 'all'/></arp></show>
+        cmd_is_xml: true
+      delegate_to: localhost
+      register: arp_cache
+
+    - name: show routing route
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show routing route
+      delegate_to: localhost
+      register: route_table
+
+    - name: show vpn flow
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show vpn flow
+      delegate_to: localhost
+      register: vpn_flow
+
+    - name: show user user-id-agent statistics
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show user user-id-agent statistics
+      delegate_to: localhost
+      register: user_id_agent_stats
+
+    - name: show user ts-agent statistics
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show user ts-agent statistics
+      delegate_to: localhost
+      register: ts_agent_stats
+
+    - name: show panorama-status
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show panorama-status
+      delegate_to: localhost
+      register: panorama_status
+
+    - name: show logging-status
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show logging-status
+      delegate_to: localhost
+      register: logging_status
+
+  post_tasks:
+    - name: Render Main Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot.j2
+        dest: "{{ device_state_snapshot }}"
+      delegate_to: localhost
+
+    - name: Render Route Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot_routes.j2
+        dest: "{{ device_state_snapshot_routes }}"
+      delegate_to: localhost
+
+    - name: Render Interface Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot_interfaces.j2
+        dest: "{{ device_state_snapshot_interfaces }}"
+      delegate_to: localhost
+
+    - name: Mail Report
+      community.general.mail:
+        host: "{{ smtp_server }}"
+        port: "{{ smtp_port }}"
+        subject: "{{ inventory_hostname_short | upper }} Current State Snapshot"
+        body: Attached please find the current device state snapshot files for {{ inventory_hostname_short | upper }}.
+        from: "{{ smtp_from }}"
+        to:
+          - "{{ smtp_to }}"
+        attach:
+          - "{{ device_state_snapshot }}"
+          - "{{ device_state_snapshot_routes }}"
+          - "{{ device_state_snapshot_interfaces }}"
+          - "{{ device_state_cfg }}"
+      ignore_errors: true
+      delegate_to: localhost
