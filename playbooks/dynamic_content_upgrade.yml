@@ -2,7 +2,7 @@
 - name: Dynamic Content Upgrade
   hosts: all
   connection: local
-  gather_facts: False
+  gather_facts: false
 
   tasks:
     - name: Update Content to Latest Version

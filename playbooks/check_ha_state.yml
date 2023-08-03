@@ -2,7 +2,7 @@
 - name: Check HA State
   hosts: all
   connection: local
-  gather_facts: False
+  gather_facts: false
 
   tasks:
     - name: Get high-availability info
@@ -19,7 +19,7 @@
         content: "text"
         xpath: "//local-info/state"
       delegate_to: localhost
-      ignore_errors: yes
+      ignore_errors: true
       register: ha_state
       when: ha_info.stdout_xml is not search('<enabled>no</enabled>')
 

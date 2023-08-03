@@ -2,7 +2,7 @@
 - name: Show Global Counters
   hosts: all
   connection: local
-  gather_facts: False
+  gather_facts: false
 
   tasks:
     - name: Show Global Counters

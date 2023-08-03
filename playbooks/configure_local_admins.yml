@@ -2,7 +2,7 @@
 - name: Configure Local Admins
   hosts: all
   connection: local
-  gather_facts: False
+  gather_facts: false
 
   tasks:
     - name: Get PAN-OS Facts
@@ -18,8 +18,8 @@
             cmd: <request><password-hash><password>{{ item.password }}</password></password-hash></request>
             cmd_is_xml: true
           register: results
-          changed_when: False
-          no_log: True
+          changed_when: false
+          no_log: true
           loop:
             - username: admin
               password: "{{ admin }}"
@@ -29,7 +29,7 @@
         - name: Parse password hash results
           set_fact:
             admin_password_hashes: "{{ admin_password_hashes | default({}) | combine({item.item.username: item.stdout_xml.split('>')[3].split('<')[0]}) }}"
-          no_log: True
+          no_log: true
           loop: "{{ results.results }}"
 
         - name: Create/update local admin

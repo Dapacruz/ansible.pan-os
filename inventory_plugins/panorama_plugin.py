@@ -23,7 +23,7 @@ DOCUMENTATION = r"""
     options:
       plugin:
           description: Get Panorama connected firewalls
-          required: true
+          required: True
           choices: ['panorama_plugin']
 """
 
@@ -32,7 +32,7 @@ class InventoryModule(BaseInventoryPlugin):
     NAME = "panorama_plugin"
 
     def verify_file(self, path):
-        """return true/false if this is possibly a valid file for this plugin to consume"""
+        """return True/False if this is possibly a valid file for this plugin to consume"""
         if super(InventoryModule, self).verify_file(path):
             # base class verifies that file exists and is readable by current user
             if path.endswith(("panorama_inventory.yaml", "panorama_inventory.yml")):
