@@ -158,8 +158,8 @@
       community.general.mail:
         host: "{{ smtp_server }}"
         port: "{{ smtp_port }}"
-        subject: "{{ inventory_hostname_short | upper }} Current State Snapshot"
-        body: Attached please find the current device state snapshot files for {{ inventory_hostname_short | upper }}.
+        subject: "{{ inventory_hostname_short | upper }} Device State Snapshot"
+        body: Attached please find the device state snapshot files for {{ inventory_hostname_short | upper }}.
         from: "{{ smtp_from }}"
         to:
           - "{{ smtp_to }}"
