@@ -1,0 +1,4 @@
+Destination, Nexthop, Interface, Metric, Age, Flags, Route-Table, Virtual-Router
+{% for route in route_table.stdout | from_json | json_query("response.result.entry") %}
+{{ route.destination }}, {{ route.nexthop }}, {{ route.interface }}, {{ route.metric }}, {{ route.age }}, {{ route.flags }}, {{ route.get("route-table") }}, {{ route.get("virtual-router") }}
+{% endfor %}
