@@ -48,7 +48,7 @@
         provider: "{{ provider }}"
         cmd: save config to preflight_{{ date }}.xml
       delegate_to: localhost
-      when: save_config_snapshot
+      when: save_config_snapshot | bool
 
     - name: Export Device State
       paloaltonetworks.panos.panos_export:
@@ -56,7 +56,7 @@
         category: device-state
         filename: "{{ device_state_cfg }}"
       delegate_to: localhost
-      when: save_config_snapshot
+      when: save_config_snapshot | bool
 
     - name: show system info
       paloaltonetworks.panos.panos_op:
@@ -148,6 +148,12 @@
         dest: "{{ device_state_snapshot_interfaces }}"
       delegate_to: localhost
 
+    - name: Find Files to Attach
+      ansible.builtin.find:
+        paths: "{{ playbook_dir }}/output"
+        patterns: "*"
+      register: files
+
     - name: Mail Report
       community.general.mail:
         host: "{{ smtp_server }}"
@@ -157,10 +163,6 @@
         from: "{{ smtp_from }}"
         to:
           - "{{ smtp_to }}"
-        attach:
-          - "{{ device_state_snapshot }}"
-          - "{{ device_state_snapshot_routes }}"
-          - "{{ device_state_snapshot_interfaces }}"
-          - "{{ device_state_cfg }}"
+        attach: "{{ files.files | json_query('[].path') }}"
       ignore_errors: true
       delegate_to: localhost
