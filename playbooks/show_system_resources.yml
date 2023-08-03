@@ -2,7 +2,7 @@
 - name: Show System Resources
   hosts: all
   connection: local
-  gather_facts: False
+  gather_facts: false
 
   tasks:
     - name: Show System Resources

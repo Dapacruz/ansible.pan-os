@@ -2,7 +2,7 @@
 - name: Show Asymmetric Drop Rate
   hosts: all
   connection: local
-  gather_facts: False
+  gather_facts: false
 
   tasks:
     - name: Show Global Counters
@@ -18,7 +18,7 @@
         content: "text"
         xpath: "//entry[name='flow_tcp_non_syn']/rate"
       delegate_to: localhost
-      ignore_errors: True
+      ignore_errors: true
       register: drop_rate
 
     - name: Output

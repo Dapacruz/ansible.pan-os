@@ -1,7 +1,7 @@
 ---
 - name: Firewall Initial Configuration
   hosts: all
-  gather_facts: False
+  gather_facts: false
 
   tasks:
     - name: Generate Intial Configuration Files

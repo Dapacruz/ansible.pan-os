@@ -2,7 +2,7 @@
 - name: Dynamic Content Upgrade
   hosts: all
   connection: local
-  gather_facts: False
+  gather_facts: false
 
   tasks:
     - name: Gather Jobs
@@ -10,7 +10,7 @@
         provider: "{{ provider }}"
         cmd: show jobs all
       register: results
-      changed_when: False
+      changed_when: false
 
     - name: Parse Job Statuses
       community.general.xml:
@@ -41,7 +41,7 @@
         provider: "{{ provider }}"
         cmd: show system info
       register: results
-      changed_when: False
+      changed_when: false
 
     - name: Parse Current Content Version
       community.general.xml:
@@ -58,7 +58,7 @@
         provider: "{{ provider }}"
         cmd: request content upgrade check
       register: results
-      changed_when: False
+      changed_when: false
 
     - name: Parse Available Content Versions
       community.general.xml:
