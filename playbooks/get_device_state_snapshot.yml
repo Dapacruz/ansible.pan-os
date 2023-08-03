@@ -21,25 +21,11 @@
         device_state_snapshot_interfaces: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_{{ date }}.csv"
         device_state_cfg: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_cfg_{{ date }}.tgz"
 
-    - name: Ensure Reports Directories Exists
+    - name: Ensure Output Directory Exists
       ansible.builtin.file:
         state: directory
         path: "{{ playbook_dir }}/output"
       delegate_to: localhost
-      run_once: true
-
-    - name: Find Existing Files
-      ansible.builtin.find:
-        paths: "{{ playbook_dir }}/output"
-        patterns: "*"
-      register: files
-      run_once: true
-
-    - name: Remove Existing Files
-      ansible.builtin.file:
-        path: "{{ item.path }}"
-        state: absent
-      with_items: "{{ files.files }}"
       run_once: true
 
   tasks:
