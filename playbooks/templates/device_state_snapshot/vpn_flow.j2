@@ -1,0 +1,14 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% set vpn_flow_entries = vpn_flows.stdout | from_json | json_query("response.result.IPSec.entry") %}
+{% if vpn_flow_entries is iterable and vpn_flow_entries is not string and vpn_flow_entries is not mapping %}
+ID, Name, State, Local IP, Peer IP, Gateway ID, Inner, Outer, Monitor, Owner
+{% for entry in vpn_flow_entries %}
+{{ entry.get("id") }}, {{ entry.get("name") }}, {{ entry.get("state") }}, {{ entry.get("localip") }}, {{ entry.get("peerip") }}, {{ entry.get("gwid") }}, {{ entry.get("inner") }}, {{ entry.get("outer") }}, {{ entry.get("mon") }}, {{ entry.get("owner") }}
+{% endfor %}
+{% elif vpn_flow_entries %}
+{{ vpn_flow_entries.get("id") }}, {{ vpn_flow_entries.get("name") }}, {{ vpn_flow_entries.get("state") }}, {{ vpn_flow_entries.get("localip") }}, {{ vpn_flow_entries.get("peerip") }}, {{ vpn_flow_entries.get("gwid") }}, {{ vpn_flow_entries.get("inner") }}, {{ vpn_flow_entries.get("outer") }}, {{ vpn_flow_entries.get("mon") }}, {{ vpn_flow_entries.get("owner") }}
+{% else %}
+No VPN flows found.
+
+{{ vpn_flows.stdout | from_json | json_query("response.result") | to_nice_json }}
+{% endif %}

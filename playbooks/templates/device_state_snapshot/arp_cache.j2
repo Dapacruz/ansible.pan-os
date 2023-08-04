@@ -1,0 +1,12 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% set arp_cache_entries = arp_cache.stdout | from_json | json_query("response.result.entries.entry") %}
+{% if arp_cache_entries %}
+IP, Mac, Status, TTL, Interface, Port
+{% for entry in arp_cache_entries %}
+{{ entry.get("ip") }}, {{ entry.get("mac") }}, {{ entry.get("status") }}, {{ entry.get("ttl") }}, {{ entry.get("port") }}, {{ entry.get("interface") }}
+{% endfor %}
+{% else %}
+No ARP entries found.
+
+{{ arp_cache.stdout | from_json | json_query("response.result") | to_nice_json }}
+{% endif %}

@@ -1,0 +1,10 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% set ts_agents = ts_agent_stats.stdout | from_json | json_query("response.result.entry") %}
+{% if ts_agents %}
+Name, Connected, vSys
+{% for ts_agent in ts_agents %}
+{{ ts_agent.get("@name") }}, {{ ts_agent.get("connected") }}, {{ ts_agent.get("vsys") }}
+{% endfor %}
+{% else %}
+No TS agents found.
+{% endif %}

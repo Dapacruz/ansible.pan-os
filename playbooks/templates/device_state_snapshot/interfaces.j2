@@ -1,0 +1,22 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+#### Physical Interfaces ##############################
+{% set physical_interfaces = interface_info.stdout | from_json | json_query("response.result.hw.entry") %}
+{% if physical_interfaces %}
+ID, Name, State, Status, Mode, Speed, Duplex, MAC, Type
+{% for int in physical_interfaces %}
+{{ int.get("id") }}, {{ int.get("name") }}, {{ int.get("state") }}, {{ int.get("st") }}, {{ int.get("mode") }}, {{ int.get("speed") }}, {{ int.get("duplex") }}, {{ int.get("mac") }}, {{ int.get("type") }}
+{% endfor %}
+{% else %}
+No physical interfaces found.
+{% endif %}
+
+#### Logical Interfaces ##############################
+{% set logical_interfaces = interface_info.stdout | from_json | json_query("response.result.ifnet.entry") %}
+{% if logical_interfaces %}
+ID, Name, IP, Addr, Addr6, Dyn, Tag, Zone, Fwd, vSys
+{% for int in logical_interfaces %}
+{{ int.get("id") }}, {{ int.get("name") }}, {{ int.get("ip") }}, {{ int.get("addr") }}, {{ int.get("addr6") }}, {{ int.get("dyn") }}, {{ int.get("tag") }}, {{ int.get("zone") }}, {{ int.get("fwd") }}, {{ int.get("vsys") }}
+{% endfor %}
+{% else %}
+No logical interfaces found.
+{% endif %}
