@@ -5,6 +5,11 @@
   gather_facts: false
 
   pre_tasks:
+    - name: Get PAN-OS Facts
+      paloaltonetworks.panos.panos_facts:
+        provider: "{{ provider }}"
+        gather_subset: ["system"]
+
     - name: Get Current Date/Time
       ansible.builtin.command:
         cmd: env TZ="America/Los_Angeles" date +"%Y%m%dT%H%m%S"
@@ -16,9 +21,13 @@
 
     - name: Set Other Facts
       ansible.builtin.set_fact:
-        device_state_snapshot: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.txt"
+        device_state_snapshot_main: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.txt"
         device_state_snapshot_routes: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_routes_{{ date }}.csv"
         device_state_snapshot_interfaces: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_{{ date }}.csv"
+        device_state_snapshot_arp_cache: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_arp_cache_{{ date }}.csv"
+        device_state_snapshot_ts_agents: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_ts_agents_{{ date }}.csv"
+        device_state_snapshot_userid_agents: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_userid_agents_{{ date }}.csv"
+        device_state_snapshot_vpn_flows: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_vpn_flows_{{ date }}.csv"
         device_state_cfg: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_cfg_{{ date }}.tgz"
 
     - name: Ensure Output Directory Exists
@@ -61,7 +70,8 @@
     - name: show interface all
       paloaltonetworks.panos.panos_op:
         provider: "{{ provider }}"
-        cmd: show interface all
+        cmd: <show><interface>all</interface></show>
+        cmd_is_xml: true
       delegate_to: localhost
       register: interface_info
 
@@ -85,7 +95,7 @@
         provider: "{{ provider }}"
         cmd: show vpn flow
       delegate_to: localhost
-      register: vpn_flow
+      register: vpn_flows
 
     - name: show user user-id-agent statistics
       paloaltonetworks.panos.panos_op:
@@ -118,20 +128,44 @@
   post_tasks:
     - name: Render Main Template
       ansible.builtin.template:
-        src: templates/device_state_snapshot.j2
-        dest: "{{ device_state_snapshot }}"
+        src: templates/device_state_snapshot/main.j2
+        dest: "{{ device_state_snapshot_main }}"
       delegate_to: localhost
 
     - name: Render Route Template
       ansible.builtin.template:
-        src: templates/device_state_snapshot_routes.j2
+        src: templates/device_state_snapshot/routes.j2
         dest: "{{ device_state_snapshot_routes }}"
       delegate_to: localhost
 
     - name: Render Interface Template
       ansible.builtin.template:
-        src: templates/device_state_snapshot_interfaces.j2
+        src: templates/device_state_snapshot/interfaces.j2
         dest: "{{ device_state_snapshot_interfaces }}"
+      delegate_to: localhost
+
+    - name: Render ARP Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/arp_cache.j2
+        dest: "{{ device_state_snapshot_arp_cache }}"
+      delegate_to: localhost
+
+    - name: Render TS Agent Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/ts_agents.j2
+        dest: "{{ device_state_snapshot_ts_agents }}"
+      delegate_to: localhost
+
+    - name: Render User-ID Agent Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/userid_agents.j2
+        dest: "{{ device_state_snapshot_userid_agents }}"
+      delegate_to: localhost
+
+    - name: Render VPN Flow Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/vpn_flow.j2
+        dest: "{{ device_state_snapshot_vpn_flows }}"
       delegate_to: localhost
 
     - name: Find Files to Attach

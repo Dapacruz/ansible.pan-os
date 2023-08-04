@@ -1,9 +1,0 @@
-ID, Name, State, Status, Mode, Speed, Duplex, MAC, Type
-{% for hw in interface_info.stdout | from_json | json_query("response.result.hw.entry") %}
-{{ hw.get("id") }}, {{ hw.get("name") }}, {{ hw.get("state") }}, {{ hw.get("st") }}, {{ hw.get("mode") }}, {{ hw.get("speed") }}, {{ hw.get("duplex") }}, {{ hw.get("mac") }}, {{ hw.get("type") }}
-{% endfor %}
-
-ID, Name, IP, Addr, Addr6, Dyn, Tag, Zone, Fwd, vSys
-{% for if in interface_info.stdout | from_json | json_query("response.result.ifnet.entry") %}
-{{ if.get("id") }}, {{ if.get("name") }}, {{ if.get("ip") }}, {{ if.get("addr") }}, {{ if.get("addr6") }}, {{ if.get("dyn") }}, {{ if.get("tag") }}, {{ if.get("zone") }}, {{ if.get("fwd") }}, {{ if.get("vsys") }}
-{% endfor %}
