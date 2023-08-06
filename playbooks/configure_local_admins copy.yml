@@ -23,8 +23,8 @@
           loop:
             - username: admin
               password: "{{ admin }}"
-            - username: ***REMOVED***
-              password: "{{ ***REMOVED*** }}"
+            - username: "{{ old_username }}"
+              password: "{{ old_username_password }}"
 
         - name: Parse password hash results
           set_fact:
