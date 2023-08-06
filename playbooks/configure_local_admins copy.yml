@@ -1,0 +1,54 @@
+---
+- name: Configure Local Admins
+  hosts: all
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Get PAN-OS Facts
+      paloaltonetworks.panos.panos_facts:
+        provider: "{{ provider }}"
+        gather_subset: ["ha"]
+
+    - name: Configure local admin
+      block:
+        - name: Generate password hash
+          paloaltonetworks.panos.panos_op:
+            provider: "{{ provider }}"
+            cmd: <request><password-hash><password>{{ item.password }}</password></password-hash></request>
+            cmd_is_xml: true
+          register: results
+          changed_when: false
+          no_log: true
+          loop:
+            - username: admin
+              password: "{{ admin }}"
+            - username: ***REMOVED***
+              password: "{{ ***REMOVED*** }}"
+
+        - name: Parse password hash results
+          set_fact:
+            admin_password_hashes: "{{ admin_password_hashes | default({}) | combine({item.item.username: item.stdout_xml.split('>')[3].split('<')[0]}) }}"
+          no_log: true
+          loop: "{{ results.results }}"
+
+        - name: Create/update local admin
+          paloaltonetworks.panos.panos_type_cmd:
+            provider: "{{ provider }}"
+            xpath: "/config/mgt-config/users"
+            element: "<entry name='{{ item.key }}'><phash>{{ item.value }}</phash><permissions><role-based><superuser>yes</superuser></role-based></permissions></entry>"
+          register: results
+          failed_when: results.msg is defined and 'override template object' not in results.msg
+          notify: Commit Changes Partial
+          loop: "{{ admin_password_hashes | default({}) | dict2items }}"
+      when: ansible_net_ha_localstate == "active"
+
+  handlers:
+    - name: Commit Changes Partial
+      paloaltonetworks.panos.panos_commit_firewall:
+        provider: "{{ provider }}"
+        admins: ["{{ provider.username }}"]
+
+    - name: Commit Changes Full
+      paloaltonetworks.panos.panos_commit_firewall:
+        provider: "{{ provider }}"
