@@ -13,16 +13,18 @@
     - name: Get Current Date/Time
       ansible.builtin.command:
         cmd: env TZ="America/Los_Angeles" date +"%Y%m%dT%H%m%S"
+      changed_when: false
       register: date_output
 
     - name: Set Date Fact
       ansible.builtin.set_fact:
         date: "{{ date_output.stdout }}"
 
-    - name: Set Other Facts
+    - name: Set Facts
       ansible.builtin.set_fact:
         device_state_snapshot_main: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.txt"
         device_state_snapshot_routes: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_routes_{{ date }}.csv"
+        device_state_snapshot_ospf_neighbors: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_ospf_neighbors_{{ date }}.csv"
         device_state_snapshot_interfaces: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_{{ date }}.csv"
         device_state_snapshot_arp_cache: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_arp_cache_{{ date }}.csv"
         device_state_snapshot_ts_agents: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_ts_agents_{{ date }}.csv"
@@ -90,6 +92,20 @@
       delegate_to: localhost
       register: route_table
 
+    - name: show routing protocol ospf neighbor
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show routing protocol ospf neighbor
+      delegate_to: localhost
+      register: ospf_neighbors
+
+    - name: show session info
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show session info
+      delegate_to: localhost
+      register: session_info
+
     - name: show vpn flow
       paloaltonetworks.panos.panos_op:
         provider: "{{ provider }}"
@@ -136,6 +152,12 @@
       ansible.builtin.template:
         src: templates/device_state_snapshot/routes.j2
         dest: "{{ device_state_snapshot_routes }}"
+      delegate_to: localhost
+
+    - name: Render OSPF Neighbor Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/ospf_neighbors.j2
+        dest: "{{ device_state_snapshot_ospf_neighbors }}"
       delegate_to: localhost
 
     - name: Render Interface Template
