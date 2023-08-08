@@ -67,6 +67,31 @@ No route table entries found.
 {% endif %}
 
 
+##### show routing protocol ospf neighbors ##############################
+
+{% set ospf_neighbor_entries = ospf_neighbors.stdout | from_json | json_query("response.result.entry") %}
+{% if ospf_neighbor_entries %}
+
+Neighbor Router ID, Neighbor Address, Status, Neighbor Priority, Area ID, Hello Suppressed, Lifetime Remain, Local Address Binding, LSA Request Pending, Messages Pending, Options, Restart Helper Exit Reason, Restart Helper Status, Restart Helper Time Remaining, Type, Virtual Router
+{% for entry in ospf_neighbor_entries %}
+{{ entry.get("neighbor-router-id") }}, {{ entry.get("neighbor-address") }}, {{ entry.get("status") }}, {{ entry.get("neighbor-priority") }}, {{ entry.get("area-id") }}, {{ entry.get("hello-suppressed") }}, {{ entry.get("lifetime-remain") }}, {{ entry.get("local-address-binding") }}, {{ entry.get("lsa-request-pending") }}, {{ entry.get("messages-pending") }}, {{ entry.get("options") }}, {{ entry.get("restart-helper-exit-reason") }}, {{ entry.get("restart-helper-status") }}, {{ entry.get("restart-helper-time-remaining") }}, {{ entry.get("type") }}, {{ entry.get("virtual-router") }}
+{% endfor %}
+
+{{ ospf_neighbors.stdout | from_json | json_query("response.result.options") }}
+{% else %}
+No OSPF neighbors found.
+
+{{ ospf_neighbors.stdout | from_json | json_query("response.result") | to_nice_json }}
+{% endif %}
+
+
+##### show session info ##############################
+
+{% for key, value in (session_info.stdout | from_json | json_query("response.result")).items() %}
+{{ key }}: {{ value }}
+{% endfor %}
+
+
 ##### show vpn flow ##############################
 
 {% set vpn_flow_entries = vpn_flows.stdout | from_json | json_query("response.result.IPSec.entry") %}
