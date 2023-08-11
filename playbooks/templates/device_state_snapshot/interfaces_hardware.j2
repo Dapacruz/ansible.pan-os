@@ -1,0 +1,11 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% set physical_interfaces = interface_info.stdout | from_json | json_query("response.result.hw.entry") %}
+{% if physical_interfaces %}
+ID, Name, State, Status, Mode, Speed, Duplex, MAC, Type
+{% for int in physical_interfaces %}
+{{ int.get("id") }}, {{ int.get("name") }}, {{ int.get("state") }}, {{ int.get("st") }}, {{ int.get("mode") }}, {{ int.get("speed") }}, {{ int.get("duplex") }}, {{ int.get("mac") }}, {{ int.get("type") }}
+{% endfor %}
+{% else %}
+ID, Name, State, Status, Mode, Speed, Duplex, MAC, Type
+No physical interfaces found.
+{% endif %}

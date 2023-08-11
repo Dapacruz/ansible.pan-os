@@ -6,5 +6,6 @@ Name, Connected, vSys
 {{ ts_agent.get("@name") }}, {{ ts_agent.get("connected") }}, {{ ts_agent.get("vsys") }}
 {% endfor %}
 {% else %}
+Name, Connected, vSys
 No TS agents found.
 {% endif %}

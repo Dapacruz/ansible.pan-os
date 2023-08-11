@@ -6,5 +6,6 @@ Name, Connected, Host, Port, Usage, Version, vSys
 {{ uid_agent.get("@name") }}, {{ uid_agent.get("connected") }}, {{ uid_agent.get("host") }}, {{ uid_agent.get("port") }}, {{ uid_agent.get("usage") }}, {{ uid_agent.get("ver") }}, {{ uid_agent.get("vsys") }}
 {% endfor %}
 {% else %}
+Name, Connected, Host, Port, Usage, Version, vSys
 No User-ID agents found.
 {% endif %}

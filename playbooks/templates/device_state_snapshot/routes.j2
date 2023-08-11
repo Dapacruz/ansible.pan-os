@@ -6,5 +6,6 @@ Destination, Nexthop, Interface, Metric, Age, Flags, Route-Table, Virtual-Router
 {{ route.destination }}, {{ route.nexthop }}, {{ route.interface }}, {{ route.metric }}, {{ route.age }}, {{ route.flags }}, {{ route.get("route-table") }}, {{ route.get("virtual-router") }}
 {% endfor %}
 {% else %}
-No route table entries found.
+Destination, Nexthop, Interface, Metric, Age, Flags, Route-Table, Virtual-Router
+No route entries found.
 {% endif %}

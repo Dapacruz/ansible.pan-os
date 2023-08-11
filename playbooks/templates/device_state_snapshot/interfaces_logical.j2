@@ -1,0 +1,11 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% set logical_interfaces = interface_info.stdout | from_json | json_query("response.result.ifnet.entry") %}
+{% if logical_interfaces %}
+ID, Name, IP, Addr, Addr6, Dyn, Tag, Zone, Fwd, vSys
+{% for int in logical_interfaces %}
+{{ int.get("id") }}, {{ int.get("name") }}, {{ int.get("ip") }}, {{ int.get("addr") }}, {{ int.get("addr6") }}, {{ int.get("dyn") }}, {{ int.get("tag") }}, {{ int.get("zone") }}, {{ int.get("fwd") }}, {{ int.get("vsys") }}
+{% endfor %}
+{% else %}
+ID, Name, IP, Addr, Addr6, Dyn, Tag, Zone, Fwd, vSys
+No logical interfaces found.
+{% endif %}
