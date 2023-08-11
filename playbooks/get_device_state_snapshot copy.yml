@@ -23,10 +23,9 @@
     - name: Set Facts
       ansible.builtin.set_fact:
         device_state_snapshot_main: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.txt"
-        device_state_snapshot_routes: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_route_table_{{ date }}.csv"
+        device_state_snapshot_routes: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_routes_{{ date }}.csv"
         device_state_snapshot_ospf_neighbors: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_ospf_neighbors_{{ date }}.csv"
-        device_state_snapshot_interfaces_hardware: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_hardware_{{ date }}.csv"
-        device_state_snapshot_interfaces_logical: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_logical_{{ date }}.csv"
+        device_state_snapshot_interfaces: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_{{ date }}.csv"
         device_state_snapshot_arp_cache: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_arp_cache_{{ date }}.csv"
         device_state_snapshot_ts_agents: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_ts_agents_{{ date }}.csv"
         device_state_snapshot_userid_agents: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_userid_agents_{{ date }}.csv"
@@ -161,16 +160,10 @@
         dest: "{{ device_state_snapshot_ospf_neighbors }}"
       delegate_to: localhost
 
-    - name: Render Hardware Interface Template
+    - name: Render Interface Template
       ansible.builtin.template:
-        src: templates/device_state_snapshot/interfaces_hardware.j2
-        dest: "{{ device_state_snapshot_interfaces_hardware }}"
-      delegate_to: localhost
-
-    - name: Render Logical Interface Template
-      ansible.builtin.template:
-        src: templates/device_state_snapshot/interfaces_logical.j2
-        dest: "{{ device_state_snapshot_interfaces_logical }}"
+        src: templates/device_state_snapshot/interfaces.j2
+        dest: "{{ device_state_snapshot_interfaces }}"
       delegate_to: localhost
 
     - name: Render ARP Template
@@ -197,39 +190,10 @@
         dest: "{{ device_state_snapshot_vpn_flows }}"
       delegate_to: localhost
 
-    - name: Merge CSV Files into an Excel Workbook
-      command: /usr/bin/python3
-      args:
-        stdin: |
-          from pathlib import Path
-          import pandas as pd
-
-          p = Path('.')
-          with pd.ExcelWriter("output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.xlsx", engine="xlsxwriter") as writer:
-              for f in sorted(p.glob('output/*.csv')):
-                  df = pd.read_csv(f)
-                  sheet_name = str(f).replace('output/{{ inventory_hostname_short }}_device_state_snapshot_', '').replace('_{{ date }}.csv', '')
-                  df.to_excel(writer, sheet_name=sheet_name, index=False)
-                  worksheet = writer.sheets[sheet_name]
-                  # Get the dimensions of the dataframe
-                  (max_row, max_col) = df.shape
-                  # Get column headers
-                  column_settings = [{"header": column} for column in df.columns]
-                  # Add Excel table
-                  worksheet.add_table(0, 0, max_row, max_col - 1, {"columns": column_settings})
-                  # Resize columns for better readability
-                  for idx, col in enumerate(df):
-                      series = df[col]
-                      max_len = max((series.astype(str).map(len).max(),len(str(series.name)))) + 3
-                      worksheet.set_column(idx, idx, max_len)
-
     - name: Find Files to Attach
       ansible.builtin.find:
         paths: "{{ playbook_dir }}/output"
-        patterns:
-          - "*.xlsx"
-          - "*.txt"
-          - "*.tgz"
+        patterns: "*"
       register: files
 
     - name: Mail Report
