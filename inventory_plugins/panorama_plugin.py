@@ -157,7 +157,9 @@ class InventoryModule(BaseInventoryPlugin):
                 self.inventory.add_host(host=fw["hostname"], group="asbc1_datacenter")
 
             self.inventory.set_variable(
-                fw["hostname"], "ansible_host", f'{fw["hostname"].lower()}.***REMOVED***'
+                fw["hostname"],
+                "ansible_host",
+                f'{fw["hostname"].lower()}.{self.domain_name}',
             )
             self.inventory.set_variable(fw["hostname"], "serial_number", fw["serial"])
             self.inventory.set_variable(fw["hostname"], "model_number", fw["model"])
@@ -176,6 +178,7 @@ class InventoryModule(BaseInventoryPlugin):
             self.plugin = self.get_option("plugin")
             self.panorama = os.environ["panorama"]
             self.panorama_api_token = os.environ["panw_api_token"]
+            self.domain_name = os.environ["domain_name"]
         except Exception as e:
             raise AnsibleParserError(f"All correct options required: {e}")
 
