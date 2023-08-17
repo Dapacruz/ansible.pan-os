@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-    - name: Run exec command
+    - name: Execute Operational Command
       paloaltonetworks.panos.panos_op:
         provider: "{{ provider }}"
         cmd: "{{ command }}"
