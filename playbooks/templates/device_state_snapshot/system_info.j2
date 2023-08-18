@@ -1,0 +1,5 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+show system info
+{% for key, value in (system_info.stdout | from_json | json_query("response.result.system")).items() %}
+{{ key | replace(",", ";") }}: {{ value | replace(",", ";") }}
+{% endfor %}

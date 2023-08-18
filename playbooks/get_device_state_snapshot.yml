@@ -20,23 +20,32 @@
       ansible.builtin.set_fact:
         date: "{{ date_output.stdout }}"
 
+    - name: Set Output Directory Fact
+      ansible.builtin.set_fact:
+        output_directory: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}"
+
     - name: Set Facts
       ansible.builtin.set_fact:
-        device_state_snapshot_main: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.txt"
-        device_state_snapshot_routes: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_route_table_{{ date }}.csv"
-        device_state_snapshot_ospf_neighbors: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_ospf_neighbors_{{ date }}.csv"
-        device_state_snapshot_interfaces_hardware: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_hardware_{{ date }}.csv"
-        device_state_snapshot_interfaces_logical: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_logical_{{ date }}.csv"
-        device_state_snapshot_arp_cache: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_arp_cache_{{ date }}.csv"
-        device_state_snapshot_ts_agents: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_ts_agents_{{ date }}.csv"
-        device_state_snapshot_userid_agents: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_userid_agents_{{ date }}.csv"
-        device_state_snapshot_vpn_flows: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_vpn_flows_{{ date }}.csv"
-        device_state_cfg: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_cfg_{{ date }}.tgz"
+        device_state_snapshot_main: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.txt"
+        device_state_snapshot_system_info: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_system_info_{{ date }}.csv"
+        device_state_snapshot_ha_state: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_ha_state_{{ date }}.csv"
+        device_state_snapshot_routes: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_route_table_{{ date }}.csv"
+        device_state_snapshot_ospf_neighbors: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_ospf_neighbors_{{ date }}.csv"
+        device_state_snapshot_session_info: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_session_info_{{ date }}.csv"
+        device_state_snapshot_interfaces_hardware: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_hardware_{{ date }}.csv"
+        device_state_snapshot_interfaces_logical: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_logical_{{ date }}.csv"
+        device_state_snapshot_arp_cache: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_arp_cache_{{ date }}.csv"
+        device_state_snapshot_userid_agents: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_userid_agents_{{ date }}.csv"
+        device_state_snapshot_ts_agents: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_ts_agents_{{ date }}.csv"
+        device_state_snapshot_panorama_status: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_panorama_status_{{ date }}.csv"
+        device_state_snapshot_logging_status: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_logging_status_{{ date }}.csv"
+        device_state_snapshot_vpn_flows: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_vpn_flows_{{ date }}.csv"
+        device_state_cfg: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_cfg_{{ date }}.tgz"
 
     - name: Ensure Output Directory Exists
       ansible.builtin.file:
         state: directory
-        path: "{{ playbook_dir }}/output"
+        path: "{{ output_directory }}"
       delegate_to: localhost
       run_once: true
 
@@ -149,6 +158,18 @@
         dest: "{{ device_state_snapshot_main }}"
       delegate_to: localhost
 
+    - name: Render System Info Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/system_info.j2
+        dest: "{{ device_state_snapshot_system_info }}"
+      delegate_to: localhost
+
+    - name: Render High Availability Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/ha_state.j2
+        dest: "{{ device_state_snapshot_ha_state }}"
+      delegate_to: localhost
+
     - name: Render Route Template
       ansible.builtin.template:
         src: templates/device_state_snapshot/routes.j2
@@ -159,6 +180,12 @@
       ansible.builtin.template:
         src: templates/device_state_snapshot/ospf_neighbors.j2
         dest: "{{ device_state_snapshot_ospf_neighbors }}"
+      delegate_to: localhost
+
+    - name: Render Session Info Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/session_info.j2
+        dest: "{{ device_state_snapshot_session_info }}"
       delegate_to: localhost
 
     - name: Render Hardware Interface Template
@@ -185,6 +212,18 @@
         dest: "{{ device_state_snapshot_ts_agents }}"
       delegate_to: localhost
 
+    - name: Render Panorama Status Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/panorama_status.j2
+        dest: "{{ device_state_snapshot_panorama_status }}"
+      delegate_to: localhost
+
+    - name: Render Logging Status Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/logging_status.j2
+        dest: "{{ device_state_snapshot_logging_status }}"
+      delegate_to: localhost
+
     - name: Render User-ID Agent Template
       ansible.builtin.template:
         src: templates/device_state_snapshot/userid_agents.j2
@@ -204,11 +243,14 @@
           from pathlib import Path
           import pandas as pd
 
-          p = Path('.')
-          with pd.ExcelWriter("output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.xlsx", engine="xlsxwriter") as writer:
-              for f in sorted(p.glob('output/*.csv')):
+          p = Path("{{ output_directory }}")
+          with pd.ExcelWriter("{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.xlsx", engine="xlsxwriter") as writer:
+              wb = writer.book
+              cell_format = wb.add_format()
+              cell_format.set_font_name("Consolas")
+              for f in sorted(p.glob("*.csv")):
                   df = pd.read_csv(f)
-                  sheet_name = str(f).replace('output/{{ inventory_hostname_short }}_device_state_snapshot_', '').replace('_{{ date }}.csv', '')
+                  sheet_name = str(f).replace("{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_", "").replace("_{{ date }}.csv", "")
                   df.to_excel(writer, sheet_name=sheet_name, index=False)
                   worksheet = writer.sheets[sheet_name]
                   # Get the dimensions of the dataframe
@@ -216,16 +258,16 @@
                   # Get column headers
                   column_settings = [{"header": column} for column in df.columns]
                   # Add Excel table
-                  worksheet.add_table(0, 0, max_row, max_col - 1, {"columns": column_settings})
+                  worksheet.add_table(0, 0, max_row, max_col - 1, {"columns": column_settings, "style": "Table Style Medium 2"})
                   # Resize columns for better readability
                   for idx, col in enumerate(df):
                       series = df[col]
                       max_len = max((series.astype(str).map(len).max(),len(str(series.name)))) + 3
-                      worksheet.set_column(idx, idx, max_len)
+                      worksheet.set_column(idx, idx, max_len, cell_format)
 
     - name: Find Files to Attach
       ansible.builtin.find:
-        paths: "{{ playbook_dir }}/output"
+        paths: "{{ output_directory }}"
         patterns:
           - "*.xlsx"
           - "*.txt"

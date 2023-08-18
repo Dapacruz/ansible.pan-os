@@ -1,0 +1,5 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+show session info
+{% for key, value in (session_info.stdout | from_json | json_query("response.result")).items() %}
+{{ key | replace(",", ";") }}: {{ value | replace(",", ";") }}
+{% endfor %}

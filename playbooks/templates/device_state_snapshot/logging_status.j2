@@ -1,0 +1,7 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+show logging-status
+{% if ansible_net_version.startswith("10.") %}
+{{ logging_status.stdout | from_json | json_query('response.result."show-logging-status"."Conn-Info"."#text"') | replace(",", ";") }}
+{% else %}
+{{ logging_status.stdout | from_json | json_query("response.result") | replace(",", ";") }}
+{% endif %}
