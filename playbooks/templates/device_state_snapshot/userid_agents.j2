@@ -1,10 +1,13 @@
 #jinja2: lstrip_blocks: True, trim_blocks: True
 {% set user_id_agents = user_id_agent_stats.stdout | from_json | json_query("response.result.entry") %}
-{% if user_id_agents %}
+{% if user_id_agents is iterable and user_id_agents is not string and user_id_agents is not mapping %}
 Name, Connected, Host, Port, Usage, Version, vSys
 {% for uid_agent in user_id_agents %}
 {{ uid_agent.get("@name") }}, {{ uid_agent.get("connected") }}, {{ uid_agent.get("host") }}, {{ uid_agent.get("port") }}, {{ uid_agent.get("usage") }}, {{ uid_agent.get("ver") }}, {{ uid_agent.get("vsys") }}
 {% endfor %}
+{% elif user_id_agents %}
+Name, Connected, Host, Port, Usage, Version, vSys
+{{ user_id_agents.get("@name") }}, {{ user_id_agents.get("connected") }}, {{ user_id_agents.get("host") }}, {{ user_id_agents.get("port") }}, {{ user_id_agents.get("usage") }}, {{ user_id_agents.get("ver") }}, {{ user_id_agents.get("vsys") }}
 {% else %}
 Name, Connected, Host, Port, Usage, Version, vSys
 No User-ID agents found.

@@ -49,8 +49,6 @@ IP, Mac, Status, TTL, Interface, Port
 {% endfor %}
 {% else %}
 No ARP entries found.
-
-{{ arp_cache.stdout | from_json | json_query("response.result") | to_nice_json }}
 {% endif %}
 
 
@@ -76,12 +74,8 @@ Neighbor Router ID, Neighbor Address, Status, Neighbor Priority, Area ID, Hello 
 {% for entry in ospf_neighbor_entries %}
 {{ entry.get("neighbor-router-id") }}, {{ entry.get("neighbor-address") }}, {{ entry.get("status") }}, {{ entry.get("neighbor-priority") }}, {{ entry.get("area-id") }}, {{ entry.get("hello-suppressed") }}, {{ entry.get("lifetime-remain") }}, {{ entry.get("local-address-binding") }}, {{ entry.get("lsa-request-pending") }}, {{ entry.get("messages-pending") }}, {{ entry.get("options") }}, {{ entry.get("restart-helper-exit-reason") }}, {{ entry.get("restart-helper-status") }}, {{ entry.get("restart-helper-time-remaining") }}, {{ entry.get("type") }}, {{ entry.get("virtual-router") }}
 {% endfor %}
-
-{{ ospf_neighbors.stdout | from_json | json_query("response.result.options") }}
 {% else %}
 No OSPF neighbors found.
-
-{{ ospf_neighbors.stdout | from_json | json_query("response.result") | to_nice_json }}
 {% endif %}
 
 
@@ -101,22 +95,24 @@ ID, Name, State, Local IP, Peer IP, Gateway ID, Inner, Outer, Monitor, Owner
 {{ entry.get("id") }}, {{ entry.get("name") }}, {{ entry.get("state") }}, {{ entry.get("localip") }}, {{ entry.get("peerip") }}, {{ entry.get("gwid") }}, {{ entry.get("inner") }}, {{ entry.get("outer") }}, {{ entry.get("mon") }}, {{ entry.get("owner") }}
 {% endfor %}
 {% elif vpn_flow_entries %}
+ID, Name, State, Local IP, Peer IP, Gateway ID, Inner, Outer, Monitor, Owner
 {{ vpn_flow_entries.get("id") }}, {{ vpn_flow_entries.get("name") }}, {{ vpn_flow_entries.get("state") }}, {{ vpn_flow_entries.get("localip") }}, {{ vpn_flow_entries.get("peerip") }}, {{ vpn_flow_entries.get("gwid") }}, {{ vpn_flow_entries.get("inner") }}, {{ vpn_flow_entries.get("outer") }}, {{ vpn_flow_entries.get("mon") }}, {{ vpn_flow_entries.get("owner") }}
 {% else %}
 No VPN flows found.
-
-{{ vpn_flows.stdout | from_json | json_query("response.result") | to_nice_json }}
 {% endif %}
 
 
 ##### show user user-id-agent statistics ##############################
 
 {% set user_id_agents = user_id_agent_stats.stdout | from_json | json_query("response.result.entry") %}
-{% if user_id_agents %}
+{% if user_id_agents is iterable and user_id_agents is not string and user_id_agents is not mapping %}
 Name, Connected, Host, Port, Usage, Version, vSys
 {% for uid_agent in user_id_agents %}
 {{ uid_agent.get("@name") }}, {{ uid_agent.get("connected") }}, {{ uid_agent.get("host") }}, {{ uid_agent.get("port") }}, {{ uid_agent.get("usage") }}, {{ uid_agent.get("ver") }}, {{ uid_agent.get("vsys") }}
 {% endfor %}
+{% elif user_id_agents %}
+Name, Connected, Host, Port, Usage, Version, vSys
+{{ user_id_agents.get("@name") }}, {{ user_id_agents.get("connected") }}, {{ user_id_agents.get("host") }}, {{ user_id_agents.get("port") }}, {{ user_id_agents.get("usage") }}, {{ user_id_agents.get("ver") }}, {{ user_id_agents.get("vsys") }}
 {% else %}
 No User-ID agents found.
 {% endif %}
@@ -125,11 +121,14 @@ No User-ID agents found.
 ##### show user ts-agent statistics ##############################
 
 {% set ts_agents = ts_agent_stats.stdout | from_json | json_query("response.result.entry") %}
-{% if ts_agents %}
+{% if ts_agents is iterable and ts_agents is not string and ts_agents is not mapping %}
 Name, Connected, vSys
 {% for ts_agent in ts_agents %}
 {{ ts_agent.get("@name") }}, {{ ts_agent.get("connected") }}, {{ ts_agent.get("vsys") }}
 {% endfor %}
+{% elif ts_agents %}
+Name, Connected, vSys
+{{ ts_agents.get("@name") }}, {{ ts_agents.get("connected") }}, {{ ts_agents.get("vsys") }}
 {% else %}
 No TS agents found.
 {% endif %}
